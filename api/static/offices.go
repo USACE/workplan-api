@@ -1,4 +1,7 @@
-[
+package static
+
+// Offices is raw JSON for offices
+var Offices = []byte(`[
   {
     "id": "0088df5f-ec58-4654-9b71-3590266b475c",
     "symbol": "MVS",
@@ -259,4 +262,4 @@
     "symbol": "SERFC",
     "name": "Southeast River Forecast Center"
   }
-]
+]`);

@@ -9,6 +9,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 
 	"shared-api/api/middleware"
+	"shared-api/api/static"
 )
 
 // Config holds all runtime configuration provided via environment variables
@@ -52,7 +53,7 @@ func main() {
 	// Public Routes
 	// NOTE: ALL GET REQUESTS ARE ALLOWED WITHOUT AUTHENTICATION USING JWTConfig Skipper. See appconfig/jwt.go
 	public.GET("shared/offices", func(c echo.Context) error {
-		return c.String(http.StatusOK, "API is Working")
+		return c.JSONBlob(http.StatusOK, static.Offices)
 	})
 
 	if cfg.LambdaContext {
