@@ -4,7 +4,6 @@ packagename = corpsmap-shared-api.zip
 
 build:
 	env GOOS=linux go build -ldflags="-s -w" -o bin/api api/main.go
-	cp -r api/static bin
 
 clean:
 	rm -rf ./bin ./vendor $(packagename) Gopkg.lock
