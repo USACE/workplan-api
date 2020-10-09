@@ -1,4 +1,4 @@
-packagename = corpsmap-shared-api.zip
+packagename = workplan-api.zip
 
 .PHONY: build clean deploy
 

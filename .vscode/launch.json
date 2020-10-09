@@ -9,9 +9,15 @@
       "type": "go",
       "request": "launch",
       "mode": "auto",
-      "program": "${workspaceFolder}/api/main.go",
+      "program": "${workspaceFolder}/main.go",
       "env": {
-        "SHARED_LAMBDACONTEXT": "FALSE"
+        "WORKPLAN_LAMBDACONTEXT": "false",
+        "WORKPLAN_SKIPJWT": "true",
+        "WORKPLAN_DBUSER": "workplan_user",
+        "WORKPLAN_DBPASS": "password",
+        "WORKPLAN_DBNAME": "postgres",
+        "WORKPLAN_DBHOST": "localhost",
+        "WORKPLAN_DBSSLMODE": "disable"
       },
       "args": []
     }

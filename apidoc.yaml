@@ -1,8 +1,8 @@
 openapi: "3.0.0"
 info:
   version: 0.1.0
-  title: US Army Corps of Engineers Shared API
+  title: Workplan API; An API For Planning Work
   license:
     name: MIT
 servers:
-  - url: https://api.rsgis.dev/development/shared
+  - url: https://api.rsgis.dev/development/workplan
