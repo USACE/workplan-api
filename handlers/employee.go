@@ -5,7 +5,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"workplan-api/models"
+	"github.com/USACE/workplan-api/models"
 
 	"github.com/labstack/echo/v4"
 )

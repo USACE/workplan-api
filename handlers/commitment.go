@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"workplan-api/models"
+	"github.com/USACE/workplan-api/models"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"

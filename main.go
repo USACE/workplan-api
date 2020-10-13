@@ -10,8 +10,8 @@ import (
 	"github.com/kelseyhightower/envconfig"
 	"github.com/labstack/echo/v4"
 
-	"workplan-api/handlers"
-	"workplan-api/middleware"
+	"github.com/USACE/workplan-api/handlers"
+	"github.com/USACE/workplan-api/middleware"
 
 	_ "github.com/lib/pq"
 )

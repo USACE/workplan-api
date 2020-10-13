@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"workplan-api/models"
+	"github.com/USACE/workplan-api/models"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"

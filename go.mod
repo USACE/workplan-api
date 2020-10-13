@@ -1,4 +1,4 @@
-module workplan-api
+module github.com/USACE/workplan-api
 
 go 1.14
 
