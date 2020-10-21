@@ -8,7 +8,7 @@ import (
 type Project struct {
 	ID      uuid.UUID `json:"id"`
 	Name    string    `json:"name"`
-	Funding int       `json:"funding"`
+	Funding float32   `json:"funding"`
 }
 
 func ListProjects(db *sqlx.DB) ([]Project, error) {

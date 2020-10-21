@@ -18,10 +18,11 @@ GRANT SELECT ON
     project,
     timeperiod,
     commitment,
-    v_commitment,
-    v_employee_commitment_summary,
-    v_project_commitment_summary,
-    v_timeperiod_capacity
+    purchase,
+    contract,
+    travel,
+    leave,
+    v_commitment
 TO workplan_reader;
 
 -- Role workplan_writer
@@ -30,7 +31,11 @@ GRANT INSERT,UPDATE,DELETE ON
     employee,
     project,
     timeperiod,
-    commitment
+    commitment,
+    purchase,
+    contract,
+    travel,
+    leave
 TO workplan_writer;
 
 -- Role postgis_reader

@@ -13,7 +13,7 @@ drop table if exists
 CREATE TABLE IF NOT EXISTS public.employee (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     name TEXT,
-    rate REAL,
+    rate NUMERIC(5,2),
     availability_multiplier NUMERIC DEFAULT 1.0
 );
 
@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS public.timeperiod (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     name TEXT,
     timeperiod_end TIMESTAMPTZ,
+    ohrate_department NUMERIC(5,2),
+    ohrate_ga NUMERIC(5,2),
     workdays INTEGER
 );
 
@@ -30,7 +32,31 @@ CREATE TABLE IF NOT EXISTS public.project (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     name TEXT,
     timeperiod_id_end UUID REFERENCES timeperiod(id),
-    funding INTEGER
+    funding NUMERIC(12,2)
+);
+
+CREATE TABLE IF NOT EXISTS public.purchase (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    name TEXT,
+    cost NUMERIC(12,2),
+    project_id UUID REFERENCES project(id),
+    timeperiod_id UUID REFERENCES timeperiod(id)
+);
+
+CREATE TABLE IF NOT EXISTS public.contract (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    name TEXT,
+    cost NUMERIC(12,2),
+    project_id UUID REFERENCES project(id),
+    timeperiod_id UUID REFERENCES timeperiod(id)
+);
+
+CREATE TABLE IF NOT EXISTS public.travel (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    name TEXT,
+    cost NUMERIC(12,2),
+    project_id UUID REFERENCES project(id),
+    timeperiod_id UUID REFERENCES timeperiod(id)
 );
 
 -- Commitment
@@ -41,6 +67,15 @@ CREATE TABLE IF NOT EXISTS public.commitment (
     project_id UUID REFERENCES project(id),
     days INTEGER NOT NULL,
     CONSTRAINT employee_timeperiod_project_unique UNIQUE (employee_id, timeperiod_id, project_id)
+);
+
+-- Leave
+CREATE TABLE IF NOT EXISTS public.leave (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    employee_id UUID REFERENCES employee(id),
+    timeperiod_id UUID REFERENCES timeperiod(id),
+    days INTEGER NOT NULL,
+    CONSTRAINT employee_timeperiod_unique UNIQUE (employee_id, timeperiod_id)
 );
 
 -- 
@@ -56,7 +91,7 @@ CREATE OR REPLACE VIEW public.v_commitment AS (
             E.id as employee_id,
             E.name as employee_name,
             C.days as days,
-            C.days * 8 * E.rate as cost
+            ((C.days * 8 * E.rate)*(100 + t.ohrate_department + t.ohrate_ga)/100)::numeric(12,2) as cost
         FROM commitment C
             INNER JOIN timeperiod T on T.id = C.timeperiod_id
             INNER JOIN project P on P.id = C.project_id
@@ -67,100 +102,101 @@ CREATE OR REPLACE VIEW public.v_commitment AS (
     );
 
 -- v_employee_commitment_summary
-CREATE OR REPLACE VIEW public.v_employee_commitment_summary AS (
-        SELECT E.id as employee_id,
-            E.name as employee_name,
-            T.id as timeperiod_id,
-            T.name as timeperiod_name,
-            COALESCE(S.committed_days, 0) * E.rate * 8 AS timeperiod_cost,
-            COALESCE(S.committed_days, 0) AS days_committed,
-            CAST(E.availability_multiplier * T.workdays as INT) - COALESCE(S.committed_days, 0) AS days_free,
-            CAST(
-                100.0 * COALESCE(s.committed_days, 0) / (E.availability_multiplier * T.workdays) AS INT
-            ) AS committed_percent
-        FROM employee AS E
-            CROSS JOIN timeperiod T
-            LEFT JOIN (
-                SELECT employee_id,
-                    timeperiod_id,
-                    sum(days) as committed_days
-                FROM commitment
-                GROUP BY employee_id,
-                    timeperiod_id
-            ) S ON S.employee_id = E.id
-            AND S.timeperiod_id = T.id
-    );
+-- CREATE OR REPLACE VIEW public.v_employee_commitment_summary AS (
+--         SELECT E.id as employee_id,
+--             E.name as employee_name,
+--             T.id as timeperiod_id,
+--             T.name as timeperiod_name,
+--             COALESCE(S.committed_days, 0) * E.rate * 8 AS timeperiod_cost,
+--             COALESCE(S.committed_days, 0) AS days_committed,
+--             CAST(E.availability_multiplier * T.workdays as INT) - COALESCE(S.committed_days, 0) AS days_free,
+--             CAST(
+--                 100.0 * COALESCE(s.committed_days, 0) / (E.availability_multiplier * T.workdays) AS INT
+--             ) AS committed_percent
+--         FROM employee AS E
+--             CROSS JOIN timeperiod T
+--             LEFT JOIN (
+--                 SELECT employee_id,
+--                     timeperiod_id,
+--                     sum(days) as committed_days
+--                 FROM commitment
+--                 GROUP BY employee_id,
+--                     timeperiod_id
+--             ) S ON S.employee_id = E.id
+--             AND S.timeperiod_id = T.id
+--     );
 
--- v_project_commitment_summary
-CREATE OR REPLACE VIEW public.v_project_commitment_summary AS (
-        SELECT P.id as project_id,
-            P.name as project_name,
-            T.id as timeperiod_id,
-            T.name as timeperiod_name,
-            T.timeperiod_end as timeperiod_end,
-    COALESCE(S.charges, 0) AS charges
-FROM project AS P
-    CROSS JOIN timeperiod T
-    LEFT JOIN (
-        SELECT project_id,
-            timeperiod_id,
-            sum(days * 8 * E.rate) AS charges
-        FROM commitment AS C
-            INNER JOIN employee E ON E.id = C.employee_id
-        GROUP BY project_id,
-            timeperiod_id
-    ) S ON S.project_id = P.id
-    AND S.timeperiod_id = T.id
-);
--- v_timeperiod_capacity
-CREATE OR REPLACE VIEW public.v_timeperiod_capacity AS (
-        SELECT tp.id as timeperiod_id,
-            tp.name as timeperiod_name,
-            sum(employee.rate * 8 * tp.workdays) as total_capacity
-        FROM timeperiod as tp
-            CROSS JOIN employee
-        GROUP BY tp.id
-    );
+-- -- v_project_commitment_summary
+-- CREATE OR REPLACE VIEW public.v_project_commitment_summary AS (
+--         SELECT P.id as project_id,
+--             P.name as project_name,
+--             T.id as timeperiod_id,
+--             T.name as timeperiod_name,
+--             T.timeperiod_end as timeperiod_end,
+--     COALESCE(S.charges, 0) AS charges
+-- FROM project AS P
+--     CROSS JOIN timeperiod T
+--     LEFT JOIN (
+--         SELECT project_id,
+--             timeperiod_id,
+--             sum(days * 8 * E.rate) AS charges
+--         FROM commitment AS C
+--             INNER JOIN employee E ON E.id = C.employee_id
+--         GROUP BY project_id,
+--             timeperiod_id
+--     ) S ON S.project_id = P.id
+--     AND S.timeperiod_id = T.id
+-- );
+-- -- v_timeperiod_capacity
+-- CREATE OR REPLACE VIEW public.v_timeperiod_capacity AS (
+--         SELECT tp.id as timeperiod_id,
+--             tp.name as timeperiod_name,
+--             sum(employee.rate * 8 * tp.workdays) as total_capacity
+--         FROM timeperiod as tp
+--             CROSS JOIN employee
+--         GROUP BY tp.id
+--     );
+
 -- -------
 -- Domains
 -- -------
 -- instrument_type
 INSERT INTO employee (name, rate) VALUES
-    ('Employe 1', 100),
-    ('Employee 2', 120),
-    ('Employee 3', 140);
+    ('Employe 1', 50.87),
+    ('Employee 2', 76.71),
+    ('Employee 3', 82.97);
 
 -- timeperiod
-INSERT INTO timeperiod (name, timeperiod_end, workdays) VALUES
-    ('Oct10 2020', 'October 10, 2020', 10),
-    ('Oct24 2020', 'October 24, 2020', 10),
-    ('Nov07 2020', 'November 7, 2020', 10),
-    ('Nov21 2020', 'November 21, 2020', 9),
-    ('Dec05 2020', 'December 5, 2020', 9),
-    ('Dec19 2020', 'December 19, 2020', 10),
-    ('Jan02 2021', 'January 2, 2021', 8),
-    ('Jan16 2021', 'January 16, 2021', 10),
-    ('Jan30 2021', 'January 30, 2021', 9),
-    ('Feb13 2021', 'February 13, 2021', 10),
-    ('Feb27 2021', 'February 27, 2021', 9),
-    ('Mar13 2021', 'March 13, 2021', 10),
-    ('Mar27 2021', 'March 27, 2021', 10),
-    ('Apr10 2021', 'April 10, 2021', 10),
-    ('Apr24 2021', 'April 24, 2021', 10),
-    ('May08 2021', 'May 8, 2021', 10),
-    ('May22 2021', 'May 22, 2021', 10),
-    ('Jun05 2021', 'June 5, 2021', 9),
-    ('Jun19 2021', 'June 19, 2021', 10),
-    ('Jul03 2021', 'July 3, 2021', 10),
-    ('Jul17 2021', 'July 17, 2021', 9),
-    ('Jul31 2021', 'July 31, 2021', 10),
-    ('Aug14 2021', 'August 14, 2021', 10),
-    ('Aug28 2021', 'August 28, 2021', 10),
-    ('Sep11 2021', 'September 11, 2021', 9),
-    ('Sep25 2021', 'September 25, 2021', 10);
+INSERT INTO timeperiod (name, timeperiod_end, workdays, ohrate_department, ohrate_ga) VALUES
+    ('Oct10 2020', 'October 10, 2020', 10, 0, 0),
+    ('Oct24 2020', 'October 24, 2020', 10, 0, 0),
+    ('Nov07 2020', 'November 7, 2020', 10, 0, 0),
+    ('Nov21 2020', 'November 21, 2020', 9, 0, 0),
+    ('Dec05 2020', 'December 5, 2020', 9, 0, 0),
+    ('Dec19 2020', 'December 19, 2020', 10, 0, 0),
+    ('Jan02 2021', 'January 2, 2021', 8, 0, 0),
+    ('Jan16 2021', 'January 16, 2021', 10, 0, 0),
+    ('Jan30 2021', 'January 30, 2021', 9, 0, 0),
+    ('Feb13 2021', 'February 13, 2021', 10, 0, 0),
+    ('Feb27 2021', 'February 27, 2021', 9, 0, 0),
+    ('Mar13 2021', 'March 13, 2021', 10, 0, 0),
+    ('Mar27 2021', 'March 27, 2021', 10, 0, 0),
+    ('Apr10 2021', 'April 10, 2021', 10, 0, 0),
+    ('Apr24 2021', 'April 24, 2021', 10, 0, 0),
+    ('May08 2021', 'May 8, 2021', 10, 0, 0),
+    ('May22 2021', 'May 22, 2021', 10, 0, 0),
+    ('Jun05 2021', 'June 5, 2021', 9, 0, 0),
+    ('Jun19 2021', 'June 19, 2021', 10, 0, 0),
+    ('Jul03 2021', 'July 3, 2021', 10, 0, 0),
+    ('Jul17 2021', 'July 17, 2021', 9, 0, 0),
+    ('Jul31 2021', 'July 31, 2021', 10, 0, 0),
+    ('Aug14 2021', 'August 14, 2021', 10, 0, 0),
+    ('Aug28 2021', 'August 28, 2021', 10, 0, 0),
+    ('Sep11 2021', 'September 11, 2021', 9, 0, 0),
+    ('Sep25 2021', 'September 25, 2021', 10, 0, 0);
 
 -- projects
 INSERT INTO project (name, funding) VALUES
-    ('Cumulus', 180000),
-    ('Access to Water', 300000),
-    ('Midas', 30000);
+    ('Cumulus', 180000.00),
+    ('Access to Water', 300000.00),
+    ('Midas', 30000.00);

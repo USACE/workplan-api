@@ -15,7 +15,7 @@ type Commitment struct {
 	ProjectID      uuid.UUID `json:"project_id" db:"project_id"`
 	ProjectName    string    `json:"project_name" db:"project_name"`
 	Days           int       `json:"days"`
-	Cost           int       `json:"cost"`
+	Cost           float32   `json:"cost"`
 }
 
 func GetCommitment(db *sqlx.DB, ID *uuid.UUID) (*Commitment, error) {

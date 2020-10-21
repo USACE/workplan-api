@@ -16,7 +16,7 @@ type Timeperiod struct {
 
 func ListTimeperiods(db *sqlx.DB) ([]Timeperiod, error) {
 	tt := make([]Timeperiod, 0)
-	if err := db.Select(&tt, `SELECT * FROM timeperiod`); err != nil {
+	if err := db.Select(&tt, `SELECT id, name, timeperiod_end, workdays FROM timeperiod`); err != nil {
 		return make([]Timeperiod, 0), err
 	}
 	return tt, nil
