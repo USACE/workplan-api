@@ -101,6 +101,19 @@ CREATE OR REPLACE VIEW public.v_commitment AS (
             project_id
     );
 
+CREATE OR REPLACE VIEW public.v_leave AS (
+    SELECT L.id as id,
+        T.id as timeperiod_id,
+        T.name as timeperiod_name,
+        E.id as employee_id,
+        E.name as employee_name,
+        L.days as days
+    FROM leave L
+        INNER JOIN timeperiod T on T.id = L.timeperiod_id
+        INNER JOIN employee E on E.id = L.employee_id
+    ORDER BY employee_id, timeperiod_id
+);
+
 -- v_employee_commitment_summary
 -- CREATE OR REPLACE VIEW public.v_employee_commitment_summary AS (
 --         SELECT E.id as employee_id,

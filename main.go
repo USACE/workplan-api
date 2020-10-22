@@ -92,6 +92,12 @@ func main() {
 	public.GET("workplan/commitments", handlers.ListCommitments(db))
 	public.POST("workplan/commitments", handlers.CreateCommitment(db))
 	public.DELETE("workplan/commitments/:id", handlers.DeleteCommitment(db))
+
+	// Leave
+	public.GET("workplan/leave", handlers.ListLeave(db))
+	public.POST("workplan/leave", handlers.CreateLeave(db))
+	public.DELETE("workplan/leave/:id", handlers.DeleteLeave(db))
+
 	// Employees
 	public.GET("workplan/employees", handlers.ListEmployees(db))
 	// Projects

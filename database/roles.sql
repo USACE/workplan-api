@@ -22,7 +22,8 @@ GRANT SELECT ON
     contract,
     travel,
     leave,
-    v_commitment
+    v_commitment,
+    v_leave
 TO workplan_reader;
 
 -- Role workplan_writer
