@@ -102,6 +102,10 @@ func main() {
 	public.GET("workplan/employees", handlers.ListEmployees(db))
 	// Projects
 	public.GET("workplan/projects", handlers.ListProjects(db))
+	public.POST("workplan/projects", handlers.CreateProject(db))
+	public.PUT("workplan/projects/:project_id", handlers.UpdateProject(db))
+	public.DELETE("workplan/projects/:project_id", handlers.DeleteProject(db))
+
 	// Timeperiods
 	public.GET("workplan/timeperiods", handlers.ListTimeperiods(db))
 
