@@ -11,8 +11,19 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+func ListFeedbackProjects(db *sqlx.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		pp, err := models.ListFeedbackProjects(db)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+		return c.JSON(http.StatusOK, pp)
+	}
+}
+
 func ListProjects(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
+
 		pp, err := models.ListProjects(db)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())

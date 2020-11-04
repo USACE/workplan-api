@@ -109,6 +109,9 @@ func main() {
 	// Timeperiods
 	public.GET("workplan/timeperiods", handlers.ListTimeperiods(db))
 
+	// Feedback URLs
+	public.GET("workplan/feedback/projects", handlers.ListFeedbackProjects(db))
+
 	if cfg.LambdaContext {
 		log.Print("starting server; Running On AWS LAMBDA")
 		log.Fatal(gateway.ListenAndServe("localhost:3030", e))

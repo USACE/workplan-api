@@ -6,14 +6,23 @@ import (
 )
 
 type Project struct {
-	ID      uuid.UUID `json:"id"`
-	Name    string    `json:"name"`
-	Funding float32   `json:"funding"`
+	ID              uuid.UUID `json:"id"`
+	Name            string    `json:"name"`
+	Funding         *float32  `json:"funding,omitempty"`
+	FeedbackEnabled *bool     `json:"feedback_enabled,omitempty" db:"feedback_enabled"`
 }
 
 func ListProjects(db *sqlx.DB) ([]Project, error) {
 	pp := make([]Project, 0)
-	if err := db.Select(&pp, `SELECT id, name, funding FROM project`); err != nil {
+	if err := db.Select(&pp, `SELECT id, name, funding, feedback_enabled FROM project`); err != nil {
+		return make([]Project, 0), err
+	}
+	return pp, nil
+}
+
+func ListFeedbackProjects(db *sqlx.DB) ([]Project, error) {
+	pp := make([]Project, 0)
+	if err := db.Select(&pp, `SELECT id, name FROM project WHERE feedback_enabled`); err != nil {
 		return make([]Project, 0), err
 	}
 	return pp, nil
@@ -30,8 +39,8 @@ func CreateProject(db *sqlx.DB, p *Project) (*Project, error) {
 
 func UpdateProject(db *sqlx.DB, p *Project) (*Project, error) {
 	var pUpdated Project
-	sql := "UPDATE project SET name=$2, funding=$3 WHERE id=$1"
-	if err := db.Get(&pUpdated, sql, p.ID, p.Name, p.Funding); err != nil {
+	sql := "UPDATE project SET name=$2, funding=$3, feedback_enabled=$4 WHERE id=$1 RETURNING id, name, funding, feedback_enabled"
+	if err := db.Get(&pUpdated, sql, p.ID, p.Name, p.Funding, p.FeedbackEnabled); err != nil {
 		return nil, err
 	}
 	return &pUpdated, nil

@@ -4,7 +4,7 @@ volumes:
   workplan_postgres_data: {}
 
 services:
-  postgres:
+  workplandb:
     image: mdillon/postgis
     volumes:
       - workplan_postgres_data:/var/lib/postgresql/data

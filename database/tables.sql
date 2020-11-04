@@ -32,7 +32,8 @@ CREATE TABLE IF NOT EXISTS public.project (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     name TEXT,
     timeperiod_id_end UUID REFERENCES timeperiod(id),
-    funding NUMERIC(12,2)
+    funding NUMERIC(12,2),
+    feedback_enabled BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE IF NOT EXISTS public.purchase (
