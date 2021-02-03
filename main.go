@@ -105,6 +105,8 @@ func main() {
 	public.POST("workplan/projects", handlers.CreateProject(db))
 	public.PUT("workplan/projects/:project_id", handlers.UpdateProject(db))
 	public.DELETE("workplan/projects/:project_id", handlers.DeleteProject(db))
+	// ProjectsFundingUpdate
+	public.POST("workplan/projects/:project_id/funding_reality_check", handlers.UpdateProjectFunding(db))
 
 	// Timeperiods
 	public.GET("workplan/timeperiods", handlers.ListTimeperiods(db))

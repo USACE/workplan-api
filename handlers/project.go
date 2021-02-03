@@ -61,6 +61,28 @@ func UpdateProject(db *sqlx.DB) echo.HandlerFunc {
 	}
 }
 
+func UpdateProjectFunding(db *sqlx.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var f models.ProjectFundingUpdate
+		if err := c.Bind(&f); err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+		idBody, err := uuid.Parse(c.Param("project_id"))
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+		if idBody != f.ProjectID {
+			return c.String(http.StatusBadRequest, "project_id in payload and route params do not match")
+		}
+
+		fUpdated, err := models.UpdateProjectFunding(db, &f)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+		return c.JSON(http.StatusCreated, fUpdated)
+	}
+}
+
 func DeleteProject(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id, err := uuid.Parse(c.Param("project_id"))

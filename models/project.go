@@ -7,6 +7,13 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+type ProjectFundingUpdate struct {
+	ID           uuid.UUID `json:"id"`
+	ProjectID    uuid.UUID `json:"project_id" db:"project_id"`
+	TimeperiodID uuid.UUID `json:"timeperiod_id" db:"timeperiod_id"`
+	Total        float32   `json:"total" db:"total"`
+}
+
 type Project struct {
 	ID                 uuid.UUID  `json:"id"`
 	Name               string     `json:"name"`
@@ -48,6 +55,17 @@ func UpdateProject(db *sqlx.DB, p *Project) (*Project, error) {
 		return nil, err
 	}
 	return &pUpdated, nil
+}
+
+func UpdateProjectFunding(db *sqlx.DB, u *ProjectFundingUpdate) (*ProjectFundingUpdate, error) {
+	var n ProjectFundingUpdate
+	err := db.Get(&n, `INSERT INTO project_funding_realitycheck (project_id, timeperiod_id, total) VALUES ($1, $2, $3)
+					   ON CONFLICT ON CONSTRAINT project_timeperiod_unique DO UPDATE SET total = EXCLUDED.total
+					   RETURNING id, project_id, timeperiod_id, total`, u.ProjectID, u.TimeperiodID, u.Total)
+	if err != nil {
+		return nil, err
+	}
+	return &n, nil
 }
 
 func DeleteProject(db *sqlx.DB, projectID *uuid.UUID) error {
