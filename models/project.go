@@ -18,7 +18,7 @@ type Project struct {
 
 func ListProjects(db *sqlx.DB) ([]Project, error) {
 	pp := make([]Project, 0)
-	if err := db.Select(&pp, `SELECT id, name, funding, funds_remaining, latest_reality_check, feedback_enabled FROM project`); err != nil {
+	if err := db.Select(&pp, `SELECT id, name, funding, funds_remaining, latest_reality_check, feedback_enabled FROM v_project`); err != nil {
 		return make([]Project, 0), err
 	}
 	return pp, nil
@@ -26,7 +26,7 @@ func ListProjects(db *sqlx.DB) ([]Project, error) {
 
 func ListFeedbackProjects(db *sqlx.DB) ([]Project, error) {
 	pp := make([]Project, 0)
-	if err := db.Select(&pp, `SELECT id, name FROM project WHERE feedback_enabled`); err != nil {
+	if err := db.Select(&pp, `SELECT id, name FROM v_project WHERE feedback_enabled`); err != nil {
 		return make([]Project, 0), err
 	}
 	return pp, nil
