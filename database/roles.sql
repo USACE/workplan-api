@@ -16,6 +16,7 @@ CREATE ROLE postgis_reader;
 GRANT SELECT ON
     employee,
     project,
+    project_funding_realitycheck,
     timeperiod,
     commitment,
     purchase,
@@ -23,7 +24,8 @@ GRANT SELECT ON
     travel,
     leave,
     v_commitment,
-    v_leave
+    v_leave,
+    V_project
 TO workplan_reader;
 
 -- Role workplan_writer
@@ -31,6 +33,7 @@ TO workplan_reader;
 GRANT INSERT,UPDATE,DELETE ON
     employee,
     project,
+    project_funding_realitycheck,
     timeperiod,
     commitment,
     purchase,

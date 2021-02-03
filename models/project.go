@@ -1,20 +1,24 @@
 package models
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
 type Project struct {
-	ID              uuid.UUID `json:"id"`
-	Name            string    `json:"name"`
-	Funding         *float32  `json:"funding,omitempty"`
-	FeedbackEnabled *bool     `json:"feedback_enabled,omitempty" db:"feedback_enabled"`
+	ID                 uuid.UUID  `json:"id"`
+	Name               string     `json:"name"`
+	Funding            *float32   `json:"funding,omitempty"`
+	FundsRemaining     *float32   `json:"funds_remaining" db:"funds_remaining"`
+	LatestRealityCheck *time.Time `json:"latest_reality_check" db:"latest_reality_check"`
+	FeedbackEnabled    *bool      `json:"feedback_enabled,omitempty" db:"feedback_enabled"`
 }
 
 func ListProjects(db *sqlx.DB) ([]Project, error) {
 	pp := make([]Project, 0)
-	if err := db.Select(&pp, `SELECT id, name, funding, feedback_enabled FROM project`); err != nil {
+	if err := db.Select(&pp, `SELECT id, name, funding, funds_remaining, latest_reality_check, feedback_enabled FROM project`); err != nil {
 		return make([]Project, 0), err
 	}
 	return pp, nil
