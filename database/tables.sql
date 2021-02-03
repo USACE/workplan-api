@@ -93,24 +93,23 @@ CREATE TABLE IF NOT EXISTS public.leave (
 -- 
 
 CREATE OR REPLACE VIEW public.v_project AS (
-    SELECT p.id                 AS id,
-           p.name               AS name,
-           p.timeperiod_id_end  AS timeperiod_id_end,
-           p.feedback_enabled   AS feedback_enabled,
-           p.funding            AS funding,
-           RC.total             AS funds_remaining,
-           RC.timeperiod_end    AS latest_reality_check
-    FROM project p
-    LEFT JOIN (
-        SELECT DISTINCT ON (b.project_id),
-                            t.id             AS timeperiod_id,
-                            t.timeperiod_end AS reality_check_date,
-                            rc.total         AS reality_check_total,
-        FROM project_funding_realitycheck rc
+	WITH latest_project_realitycheck AS (
+		SELECT DISTINCT ON (rc.project_id) project_id,
+				            rc.total AS funds_remaining,
+		                    t.timeperiod_end AS latest_reality_check
+		FROM project_funding_realitycheck rc
         INNER JOIN timeperiod t ON t.id = rc.timeperiod_id
-        GROUP BY rc.project_id
         ORDER BY rc.project_id, t.timeperiod_end DESC
-    ) RC ON RC.project_id = p.id
+	)
+    SELECT p.id                    AS id,
+           p.name                  AS name,
+           p.timeperiod_id_end     AS timeperiod_id_end,
+           p.feedback_enabled      AS feedback_enabled,
+           p.funding               AS funding,
+           RC.funds_remaining      AS funds_remaining,
+           RC.latest_reality_check AS latest_reality_check
+    FROM project p
+    LEFT JOIN latest_project_realitycheck RC ON RC.project_id = p.id
 );
 
 CREATE OR REPLACE VIEW public.v_commitment AS (
